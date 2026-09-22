@@ -41,19 +41,24 @@ function node(metadata: CanvasNodeData["metadata"]): CanvasNodeData {
 
 describe("produced model", () => {
     test("freezes the submitted model instead of the dropdown selection", () => {
-        const next = applyGeneratedMediaResultMetadata(node({
-            model: "user-1::changed-later",
-            producedModel: "user-1::old",
-            producedModelCandidate: "system-1::gpt-image-1",
-            content: "https://example.test/old.mp4",
-        }), videoMetadata({
-            url: "https://example.test/new.mp4",
-            storageKey: "video:new",
-            width: 1280,
-            height: 720,
-            bytes: 12,
-            mimeType: "video/mp4",
-        }), {}, "logical-image");
+        const next = applyGeneratedMediaResultMetadata(
+            node({
+                model: "user-1::changed-later",
+                producedModel: "user-1::old",
+                producedModelCandidate: "system-1::gpt-image-1",
+                content: "https://example.test/old.mp4",
+            }),
+            videoMetadata({
+                url: "https://example.test/new.mp4",
+                storageKey: "video:new",
+                width: 1280,
+                height: 720,
+                bytes: 12,
+                mimeType: "video/mp4",
+            }),
+            {},
+            "logical-image",
+        );
 
         expect(next.producedModel).toBe("system-1::gpt-image-1");
         expect(next.producedModelCandidate).toBeUndefined();

@@ -228,18 +228,21 @@ export async function executeImageGeneration({
                                 ? {
                                       ...node,
                                       ...geometry,
-                                      metadata: commitProducedModel({
-                                          ...node.metadata,
-                                          content: child.metadata?.content,
-                                          storageKey: child.metadata?.storageKey,
-                                          mimeType: child.metadata?.mimeType,
-                                          bytes: child.metadata?.bytes,
-                                          naturalWidth: child.metadata?.naturalWidth,
-                                          naturalHeight: child.metadata?.naturalHeight,
-                                          assetId: child.metadata?.assetId,
-                                          primaryImageId: targetId,
-                                          status: NODE_STATUS_SUCCESS,
-                                      }, child.metadata?.producedModel),
+                                      metadata: commitProducedModel(
+                                          {
+                                              ...node.metadata,
+                                              content: child.metadata?.content,
+                                              storageKey: child.metadata?.storageKey,
+                                              mimeType: child.metadata?.mimeType,
+                                              bytes: child.metadata?.bytes,
+                                              naturalWidth: child.metadata?.naturalWidth,
+                                              naturalHeight: child.metadata?.naturalHeight,
+                                              assetId: child.metadata?.assetId,
+                                              primaryImageId: targetId,
+                                              status: NODE_STATUS_SUCCESS,
+                                          },
+                                          child.metadata?.producedModel,
+                                      ),
                                   }
                                 : node,
                         );
