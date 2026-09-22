@@ -8,12 +8,15 @@ import { canvasThemes } from "@/lib/canvas-theme";
 import { canvasConnectionTilt } from "@/lib/canvas/canvas-connection-tilt";
 import { storyboardMinNodeHeight } from "@/lib/canvas/canvas-storyboard-layout";
 import { resourceStorageLabel, resourceStorageLocation, resourceStorageTitle } from "@/lib/canvas/resource-storage-status";
+import { producedModelLabel } from "@/lib/canvas/produced-model";
+import { useUserStore } from "@/stores/use-user-store";
+import { effectiveConfigForCustomChannels, useConfigStore } from "@/stores/use-config-store";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import { CanvasNodeType, type CanvasNodeData, type CanvasNodeTypeId, type Position } from "@/types/canvas";
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
 import { ART_CRITIQUE_NODE_TYPE } from "@/lib/art-critique/contracts";
 import { getNodeDefinition, getNodeMinSize, shouldKeepAspectRatio } from "@/lib/canvas/node-registry";
-import { CanvasNodeContent, CanvasNodeImageInfo } from "./canvas-node-content";
+import { CanvasNodeContent, CanvasNodeImageInfo, CanvasNodeProducedModel } from "./canvas-node-content";
 
 type ResizeCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 type CanvasTheme = (typeof canvasThemes)[keyof typeof canvasThemes];
@@ -124,6 +127,11 @@ export const CanvasNode = React.memo(function CanvasNode({
     const mediaDimensionLabel = formatMediaDimensionLabel(data, hasImageContent || hasVideoContent);
     const isComposerNode = data.type === CanvasNodeType.Config;
     const hasMediaContent = hasImageContent || hasVideoContent || hasAudioContent;
+    const producedModelStored = data.metadata?.producedModel;
+    const showProducedModel = showImageInfo && hasMediaContent && Boolean(producedModelStored);
+    const producedModelConfig = useConfigStore((state) => (showProducedModel ? state.config : undefined));
+    const customChannelsEnabled = useUserStore((state) => (showProducedModel ? state.features.customChannelsEnabled : false));
+    const producedModelText = showProducedModel && producedModelConfig ? producedModelLabel(effectiveConfigForCustomChannels(producedModelConfig, customChannelsEnabled), producedModelStored) : "";
     const isBatchRoot = data.type === CanvasNodeType.Image && Boolean(data.metadata?.isBatchRoot) && batchCount > 1;
     const isBatchChild = data.type === CanvasNodeType.Image && Boolean(data.metadata?.batchRootId);
     const showStatusTrack = Boolean(resourceLabel || data.metadata?.locked || isBatchRoot || (isBatchChild && !readOnly) || (hasMediaContent && !readOnly));
@@ -464,9 +472,12 @@ export const CanvasNode = React.memo(function CanvasNode({
                         <BatchChildActionButton theme={theme} label="下载主图" icon={<Download className="size-3.5" />} onClick={() => downloadNode?.(data)} />
                     </div>
                 ) : null}
-                {assetTags.length || (showImageInfo && hasImageContent) ? (
-                    <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[var(--node-z-overlay)] flex items-end justify-between gap-2">
-                        {assetTags.length ? <AssetTagBadges tags={assetTags} theme={theme} /> : null}
+                {assetTags.length || (showImageInfo && hasMediaContent && (producedModelText || hasImageContent)) ? (
+                    <div className={`pointer-events-none absolute inset-x-3 z-[var(--node-z-overlay)] flex items-end justify-between gap-2 ${mediaActive && hasVideoContent ? "bottom-16" : "bottom-3"}`}>
+                        <div className="flex min-w-0 items-end gap-1">
+                            {assetTags.length ? <AssetTagBadges tags={assetTags} theme={theme} /> : null}
+                            {producedModelText ? <CanvasNodeProducedModel label={producedModelText} /> : null}
+                        </div>
                         {showImageInfo && hasImageContent ? <CanvasNodeImageInfo node={data} /> : null}
                     </div>
                 ) : null}

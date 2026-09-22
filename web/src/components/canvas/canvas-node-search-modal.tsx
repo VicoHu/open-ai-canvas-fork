@@ -4,6 +4,7 @@ import { AudioLines, BookOpenText, Clock3, FileText, Image, Pencil, Search, Vide
 
 import { WorkspaceState } from "@/components/layout/workspace-state";
 import { canvasNodeMaterialSummary, canvasNodeSearchContext, canvasNodeSearchTimes, searchCanvasNodes } from "@/lib/canvas/canvas-node-search";
+import { useEffectiveConfig } from "@/stores/use-config-store";
 import { canvasNodeVideoPreviewUrl } from "@/lib/canvas/canvas-media-preview";
 import { getNodeListLabel } from "@/lib/canvas/node-registry";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
@@ -13,7 +14,8 @@ const RESULT_LIST_ID = "canvas-node-search-results";
 export function CanvasNodeSearchModal({ open, nodes, onClose, onFocus }: { open: boolean; nodes: CanvasNodeData[]; onClose: () => void; onFocus: (nodeId: string) => void }) {
     const [query, setQuery] = useState("");
     const [activeIndex, setActiveIndex] = useState(0);
-    const results = useMemo(() => searchCanvasNodes(nodes, query), [nodes, query]);
+    const config = useEffectiveConfig();
+    const results = useMemo(() => searchCanvasNodes(nodes, query, 80, config), [config, nodes, query]);
 
     useEffect(() => setActiveIndex(0), [query, open]);
     useEffect(() => setActiveIndex((current) => Math.min(current, Math.max(0, results.length - 1))), [results.length]);
@@ -80,8 +82,9 @@ export function CanvasNodeSearchModal({ open, nodes, onClose, onFocus }: { open:
 }
 
 const CanvasNodeSearchResult = memo(function CanvasNodeSearchResult({ node, active, onActivate, onSelect }: { node: CanvasNodeData; active: boolean; onActivate: () => void; onSelect: () => void }) {
+    const config = useEffectiveConfig();
     const times = canvasNodeSearchTimes(node);
-    const materialSummary = canvasNodeMaterialSummary(node);
+    const materialSummary = canvasNodeMaterialSummary(node, config);
     const context = canvasNodeSearchContext(node);
     return (
         <button

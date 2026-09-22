@@ -3,6 +3,7 @@ import { AudioLines, Clock3, FileText, Image, Layers, Pencil, Search, X } from "
 
 import { WorkspaceState } from "@/components/layout/workspace-state";
 import { canvasNodeMaterialSummary, canvasNodeSearchContext, canvasNodeSearchTimes } from "@/lib/canvas/canvas-node-search";
+import { useEffectiveConfig } from "@/stores/use-config-store";
 import { canvasNodeVideoPreviewUrl } from "@/lib/canvas/canvas-media-preview";
 import { getNodeListLabel } from "@/lib/canvas/node-registry";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
@@ -62,8 +63,9 @@ export function CanvasWorkspaceNodeListPanel({
 }
 
 const CanvasNodeListItem = memo(function CanvasNodeListItem({ node, active, onSelect }: { node: CanvasNodeData; active: boolean; onSelect: () => void }) {
+    const config = useEffectiveConfig();
     const times = canvasNodeSearchTimes(node);
-    const materialSummary = canvasNodeMaterialSummary(node);
+    const materialSummary = canvasNodeMaterialSummary(node, config);
     const context = canvasNodeSearchContext(node);
     return (
         <button
